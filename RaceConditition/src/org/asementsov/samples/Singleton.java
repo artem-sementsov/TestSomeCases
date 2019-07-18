@@ -8,6 +8,7 @@ public class Singleton {
 
     }
 
+    // synchronized or not
     public static Singleton getInstance() {
 
         if (instance == null) {

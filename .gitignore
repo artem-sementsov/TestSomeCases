@@ -23,5 +23,7 @@
 hs_err_pid*
 
 #personal
-out/
+*/out/*
 *.iml
+*/*.idea
+*.DS_Store
