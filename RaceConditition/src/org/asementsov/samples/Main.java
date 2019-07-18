@@ -7,23 +7,22 @@ import java.util.concurrent.*;
 
 public class Main {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) {
 
         int count = 0;
         long ts = System.currentTimeMillis();
         long tsAvg = 0;
 
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        start:
         while (true) {
             ++count;
-            ExecutorService executor = Executors.newFixedThreadPool(2);
 
             List<Future<Singleton>> list = new ArrayList<>();
 
-            Callable<Singleton> callable = new SingletonCallable();
             for (int i = 0; i < 2; i++) {
-                //submit Callable tasks to be executed by thread pool
-                Future<Singleton> future = executor.submit(callable);
-                //add Future to the list, we can get return value using Future
+                Future<Singleton> future = executor.submit(Singleton::getInstance);
                 list.add(future);
             }
 
@@ -31,8 +30,6 @@ public class Main {
 
             for (Future<Singleton> fut : list) {
                 try {
-                    //print the return value of Future, notice the output delay in console
-                    // because Future.get() waits for task to get completed
                     Singleton cur = fut.get();
                     if (result == null) {
                         result = cur;
@@ -50,11 +47,9 @@ public class Main {
                 } catch(Exception e){
                     e.printStackTrace();
                     System.out.println("Average execution time = " + tsAvg);
-                    System.exit(1);
+                    break start;
                 }
             }
-            //shut down the executor service now
-            executor.shutdown();
 
             Singleton.clear();
 
@@ -69,16 +64,9 @@ public class Main {
                 } else {
                     tsAvg = diff;
                 }
-                //System.out.println("Average execution time = " + tsAvg);
+                System.out.println("Average execution time = " + tsAvg);
             }
         }
-    }
-}
-
-class SingletonCallable implements Callable {
-
-    @Override
-    public Object call() throws Exception {
-        return Singleton.getInstance();
+        executor.shutdown();
     }
 }
